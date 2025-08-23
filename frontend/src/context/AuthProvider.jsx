@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import AuthContext from './AuthContext';
@@ -8,6 +8,27 @@ export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const navigate = useNavigate();
+
+  // Add axios interceptor to handle 401/403 responses
+  useEffect(() => {
+    const interceptor = axios.interceptors.response.use(
+      response => response,
+      error => {
+        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+          // Token is invalid or expired - clear it and redirect to login
+          localStorage.removeItem('token');
+          setUser(null);
+          navigate('/login');
+        }
+        return Promise.reject(error);
+      }
+    );
+    
+    // Cleanup interceptor on component unmount
+    return () => {
+      axios.interceptors.response.eject(interceptor);
+    };
+  }, [navigate]);
 
   useEffect(() => {
     const verifyAuth = async () => {
@@ -60,11 +81,11 @@ const login = async (email, password) => {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
-    navigate('/login');
-  };
+const logout = useCallback(() => {
+  localStorage.removeItem('token');
+  setUser(null);
+  navigate('/login');
+}, [navigate]);
 
   return (
     <AuthContext.Provider value={{ user, authLoading, login, signup, logout }}>

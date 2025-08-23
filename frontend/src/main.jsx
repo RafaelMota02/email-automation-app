@@ -15,11 +15,11 @@ axios.interceptors.request.use(config => {
   return config;
 });
 
-// Handle 401 responses globally
+// Handle 401 and 403 responses globally
 axios.interceptors.response.use(
   response => response,
   error => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 || error.response?.status === 403) {
       localStorage.removeItem("token");
       window.location.href = "/login";
     }
