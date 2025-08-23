@@ -11,7 +11,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',  // Backend port
+        target: 'https://email-automation-app-t8ar.onrender.com',  // Backend port
         changeOrigin: true,
         secure: false,
         ws: true,
