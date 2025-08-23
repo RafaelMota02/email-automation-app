@@ -14,7 +14,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: "https://email-automation-app-rho.vercel.app/",
     methods: ["GET", "POST"]
   }
 });
@@ -23,7 +23,7 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 const corsOptions = {
-  origin: 'http://localhost:5173',
+  origin: 'https://email-automation-app-rho.vercel.app/',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Content-Disposition', 'Accept', 'Origin', 'X-Requested-With'],
   exposedHeaders: ['Content-Disposition'],

@@ -6,7 +6,7 @@ import "./styles/index.css";
 import { ToastProvider } from './context/ToastContext.jsx';
 
 // Configure axios to automatically add auth header and base URL
-axios.defaults.baseURL = 'http://localhost:5000';
+axios.defaults.baseURL = 'https://email-automation-app-t8ar.onrender.com/';
 axios.interceptors.request.use(config => {
   const token = localStorage.getItem("token");
   if (token) {
