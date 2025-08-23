@@ -9,27 +9,6 @@ export default function AuthProvider({ children }) {
   const [authLoading, setAuthLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Add axios interceptor to handle 401/403 responses
-  useEffect(() => {
-    const interceptor = axios.interceptors.response.use(
-      response => response,
-      error => {
-        if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-          // Token is invalid or expired - clear it and redirect to login
-          localStorage.removeItem('token');
-          setUser(null);
-          navigate('/login');
-        }
-        return Promise.reject(error);
-      }
-    );
-    
-    // Cleanup interceptor on component unmount
-    return () => {
-      axios.interceptors.response.eject(interceptor);
-    };
-  }, [navigate]);
-
   useEffect(() => {
     const verifyAuth = async () => {
       const token = localStorage.getItem('token');
