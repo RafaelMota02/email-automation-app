@@ -4,6 +4,12 @@ const jwt = require("jsonwebtoken");
 
 const registerUser = async (req, res) => {
   const { email, password } = req.body;
+  
+  // Check database connection
+  if (!pool) {
+    return res.status(500).json({ error: "Database connection not available" });
+  }
+
   try {
     // Check if user exists
     const existing = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
@@ -43,6 +49,12 @@ const verifyUser = async (req, res) => {
 
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
+  
+  // Check database connection
+  if (!pool) {
+    return res.status(500).json({ error: "Database connection not available" });
+  }
+
   try {
     // Find user
     const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);

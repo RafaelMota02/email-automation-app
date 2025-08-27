@@ -47,10 +47,10 @@ app.use(cors({
 }));
 
 // Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/campaigns", campaignRoutes);
-app.use("/api/databases", databaseRoutes);
-app.use("/api/smtp", smtpRoutes);
+app.use("/auth", authRoutes);
+app.use("/campaigns", campaignRoutes);
+app.use("/databases", databaseRoutes);
+app.use("/smtp", smtpRoutes);
 
 // Store Socket.IO instance in app for route use
 app.set("io", io);
