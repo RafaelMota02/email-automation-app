@@ -16,7 +16,7 @@ export default function AuthProvider({ children }) {
       
       if (token) {
         try {
-          const res = await axios.get(`${API_BASE_URL}${API_PREFIX}/auth/verify`, {
+          const res = await axios.get(`${API_BASE_URL}/api/auth/verify`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           setUser(res.data); // Verify endpoint returns user object directly
@@ -34,7 +34,7 @@ export default function AuthProvider({ children }) {
 
 const login = async (email, password) => {
   try {
-    const res = await axios.post(`${API_BASE_URL}${API_PREFIX}/auth/login`, { email, password }, {
+    const res = await axios.post(`${API_BASE_URL}/api/auth/login`, { email, password }, {
       headers: {'Content-Type': 'application/json'}
     });
       localStorage.setItem('token', res.data.token);
@@ -48,7 +48,7 @@ const login = async (email, password) => {
 
 const signup = async (email, password) => {
   try {
-    const res = await axios.post(`${API_BASE_URL}${API_PREFIX}/auth/signup`, { email, password }, {
+    const res = await axios.post(`${API_BASE_URL}/api/auth/signup`, { email, password }, {
       headers: {'Content-Type': 'application/json'}
     });
       localStorage.setItem('token', res.data.token);

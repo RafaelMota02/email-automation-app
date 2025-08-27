@@ -4,6 +4,7 @@ import CampaignList from '../components/CampaignList';
 import SendCampaignForm from '../components/SendCampaignForm';
 import StatCard from '../components/StatCard';
 import { useToast } from '../context/ToastContext.jsx';
+import { API_BASE_URL, API_PREFIX } from '../config';
 
 export default function Dashboard() {
   const { addToast } = useToast();
@@ -16,7 +17,7 @@ export default function Dashboard() {
 
   const fetchStats = useCallback(async () => {
     try {
-      const res = await axios.get('/api/campaigns/stats', {
+      const res = await axios.get(`${API_BASE_URL}${API_PREFIX}/campaigns/stats`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
