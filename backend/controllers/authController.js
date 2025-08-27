@@ -2,6 +2,18 @@ const pool = require("../db/pool");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
+const createUsersTable = async () => {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id SERIAL PRIMARY KEY,
+      email VARCHAR(255) NOT NULL UNIQUE,
+      password VARCHAR(255) NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+};
+
 const registerUser = async (req, res) => {
   const { email, password } = req.body;
   
@@ -11,6 +23,9 @@ const registerUser = async (req, res) => {
   }
 
   try {
+    // Ensure users table exists
+    await createUsersTable();
+    
     // Check if user exists
     const existing = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
     if (existing.rows.length > 0) return res.status(400).json({ error: "Email already in use" });
@@ -56,6 +71,9 @@ const loginUser = async (req, res) => {
   }
 
   try {
+    // Ensure users table exists
+    await createUsersTable();
+    
     // Find user
     const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
     if (result.rows.length === 0) return res.status(400).json({ error: "Email not found" });
