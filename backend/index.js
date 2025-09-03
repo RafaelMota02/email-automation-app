@@ -47,6 +47,9 @@ app.use(cors({
   credentials: true
 }));
 
+// Handle OPTIONS requests for CORS preflight
+app.options("*", cors());
+
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/campaigns", campaignRoutes);
