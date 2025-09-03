@@ -1,32 +1,44 @@
 const Knex = require('knex');
 const knexConfig = require('./knexfile');
 const knex = Knex(knexConfig.development);
-const fs = require('fs');
-const path = require('path');
 
 async function resetDatabase() {
   try {
-    // Get all migration files
-    const migrationDir = path.join(__dirname, 'db', 'migrations');
-    const migrationFiles = fs.readdirSync(migrationDir);
-    
-    // Drop all tables in reverse dependency order
+    // Drop all tables
     await knex.raw(`
-      DROP TABLE IF EXISTS campaigns CASCADE;
-      DROP TABLE IF EXISTS saved_databases CASCADE;
-      DROP TABLE IF EXISTS smtp_configurations CASCADE;
-      DROP TABLE IF EXISTS users CASCADE;
-      DROP TABLE IF EXISTS knex_migrations CASCADE;
-      DROP TABLE IF EXISTS knex_migrations_lock CASCADE;
+      DO $$ 
+      DECLARE 
+        r RECORD;
+      BEGIN 
+        FOR r IN 
+          (SELECT tablename FROM pg_tables WHERE schemaname = 'public') 
+        LOOP 
+          EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE'; 
+        END LOOP; 
+      END $$;
     `);
     
     console.log('✅ Dropped all tables');
     
     // Recreate migrations tables
-    await knex.migrate.forceFreeMigrationsLock();
+    await knex.raw(`CREATE TABLE IF NOT EXISTS knex_migrations (
+      id serial PRIMARY KEY,
+      name varchar(255),
+      batch integer,
+      migration_time timestamptz
+    )`);
+    
+    await knex.raw(`CREATE TABLE IF NOT EXISTS knex_migrations_lock (
+      index serial PRIMARY KEY,
+      is_locked integer
+    )`);
+    
+    console.log('✅ Recreated migrations tables');
+    
+    // Run all migrations
     await knex.migrate.latest();
     
-    console.log('✅ Recreated database schema');
+    console.log('✅ Ran all migrations successfully');
     
     process.exit(0);
   } catch (error) {

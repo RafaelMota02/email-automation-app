@@ -12,16 +12,7 @@ module.exports = {
       directory: './db/migrations',
       loadExtensions: ['.js'],
       sortDirsSeparately: true,
-      disableMigrationsListValidation: true,
-      migrationSource: new (require('knex/lib/migrations/migration-source'))({
-        getMigrations() {
-          return Promise.resolve([
-            '20250827155300_create_users_table',
-            '20250821170000_add_resend_count_to_campaigns_fix',
-            '20250827162000_reset_database'
-          ]);
-        }
-      })
+      disableMigrationsListValidation: true
     },
     seeds: {
       directory: './db/seeds'

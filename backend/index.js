@@ -13,7 +13,8 @@ const smtpRoutes = require("./routes/smtp");
 // Allowed origins for CORS
 const allowedOrigins = [
   "http://localhost:5173", // dev frontend
-  "https://email-automation-app-rho.vercel.app" // production frontend
+  "https://email-automation-app-rho.vercel.app", // production frontend
+  "https://email-automation-app-t8ar.onrender.com" // Render deployment
 ];
 
 const app = express();
