@@ -1,12 +1,22 @@
 {
-  "rewrites": [
+  "builds": [
     {
-      "source": "/api/:match*",
-      "destination": "/api/:match*"
+      "src": "frontend/**/*.html",
+      "use": "@vercel/static"
     },
     {
-      "source": "/:match*",
-      "destination": "/index.html"
+      "src": "frontend/**/*",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "https://email-automation-app-t8ar.onrender.com/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/frontend/index.html"
     }
   ]
 }
