@@ -14,7 +14,8 @@ const smtpRoutes = require("./routes/smtp");
 const allowedOrigins = [
   "http://localhost:5173", // dev frontend
   "https://email-automation-app-rho.vercel.app", // production frontend
-  "https://email-automation-app-t8ar.onrender.com" // Render deployment
+  "https://email-automation-app-t8ar.onrender.com", // Render deployment
+  "https://email-automation-app.vercel.app" // Additional Vercel deployment
 ];
 
 const app = express();
@@ -33,7 +34,16 @@ const io = new Server(server, {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
-  origin: allowedOrigins,
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
+    }
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: [
     "Content-Type",
@@ -44,7 +54,8 @@ app.use(cors({
     "X-Requested-With"
   ],
   exposedHeaders: ["Content-Disposition"],
-  credentials: true
+  credentials: true,
+  optionsSuccessStatus: 200 // For legacy browser support
 }));
 
 // Handle OPTIONS requests for CORS preflight
