@@ -18,7 +18,7 @@ export default function Databases() {
   const handleDelete = async (databaseId) => {
     if (!window.confirm('Are you sure you want to delete this database?')) return;
     try {
-      await axios.delete(`${API_BASE_URL}${API_PREFIX}/databases/${databaseId}`, {
+      await axios.delete(`${API_BASE_URL}/databases/${databaseId}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
@@ -38,7 +38,7 @@ export default function Databases() {
           addToast('Not authenticated', 'error');
           return;
         }
-        const response = await axios.get(`${API_BASE_URL}${API_PREFIX}/databases`, {
+        const response = await axios.get(`${API_BASE_URL}/databases`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
