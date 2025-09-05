@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import CreateDatabaseButton from '../components/CreateDatabaseButton';
 import { useToast } from '../context/ToastContext.jsx';
+import { API_BASE_URL, API_PREFIX } from '../config';
 
 export default function Databases() {
   const { addToast } = useToast();
@@ -17,7 +18,7 @@ export default function Databases() {
   const handleDelete = async (databaseId) => {
     if (!window.confirm('Are you sure you want to delete this database?')) return;
     try {
-      await axios.delete(`/api/databases/${databaseId}`, {
+      await axios.delete(`${API_BASE_URL}${API_PREFIX}/databases/${databaseId}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
@@ -37,7 +38,7 @@ export default function Databases() {
           addToast('Not authenticated', 'error');
           return;
         }
-        const response = await axios.get('/api/databases', {
+        const response = await axios.get(`${API_BASE_URL}${API_PREFIX}/databases`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
