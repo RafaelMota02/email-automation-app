@@ -85,12 +85,19 @@ export default function Settings() {
         body: JSON.stringify(trimmedConfig)
       });
       
-      const result = await response.json();
-      
       if (response.ok) {
+        await response.json(); // We don't need the result, just consume the response
         addToast('SMTP configuration saved successfully!', 'success');
       } else {
-        addToast(result.message || 'Failed to save SMTP configuration', 'error');
+        // Handle non-200 responses
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const result = await response.json();
+          addToast(result.message || 'Failed to save SMTP configuration', 'error');
+        } else {
+          const text = await response.text();
+          addToast(`Server error: ${response.status} - ${text}`, 'error');
+        }
       }
     } catch (error) {
       console.error('Failed to update SMTP settings:', error);
