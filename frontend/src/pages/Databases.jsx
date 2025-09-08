@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import CreateDatabaseButton from '../components/CreateDatabaseButton';
 import { useToast } from '../context/ToastContext.jsx';
-import { API_BASE_URL, API_PREFIX } from '../config';
+import { API_BASE_URL } from '../config';
 
 export default function Databases() {
   const { addToast } = useToast();
