@@ -65,7 +65,6 @@ app.options("*", cors());
 app.use("/api/auth", authRoutes);
 app.use("/api/campaigns", campaignRoutes);
 app.use("/api/databases", databaseRoutes);
-app.use("/databases", databaseRoutes);
 app.use("/api/smtp", smtpRoutes);
 
 // Store Socket.IO instance in app for route use
