@@ -76,7 +76,7 @@ export default function Settings() {
       const token = localStorage.getItem('token');
       const trimmedConfig = trimConfig(smtpConfig);
       
-      const response = await fetch('/api/smtp', {
+      const response = await fetch('/api/smtp/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
