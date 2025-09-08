@@ -13,9 +13,10 @@ import EditDatabase from './pages/EditDatabase';
 import CampaignDetails from './pages/CampaignDetails';
 import Settings from './pages/Settings';
 import RequireAuth from './components/RequireAuth';
+import { WS_BASE_URL } from './config'; // Import the WebSocket URL
 
 // Create socket connection
-const socket = io(import.meta.env.VITE_API_BASE_URL, {
+const socket = io(WS_BASE_URL, {
   autoConnect: false,
   path: "/socket.io",
   transports: ["websocket", "polling"]
