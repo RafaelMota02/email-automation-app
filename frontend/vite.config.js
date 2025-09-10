@@ -7,11 +7,14 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  build: {
+    outDir: 'dist' // Explicitly set output directory
+  },
   server: {
     port: 5173,
     proxy: {
       '/api': {
-        target: 'https://email-automation-app-t8ar.onrender.com',  // Backend port
+        target: 'https://email-automation-app-t8ar.onrender.com',
         changeOrigin: true,
         secure: false,
         ws: true,
