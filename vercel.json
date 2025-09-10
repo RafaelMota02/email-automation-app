@@ -11,7 +11,7 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "https://email-automation-app.onrender.com/api/$1"
+      "dest": "https://email-automation-app-t8ar.onrender.com/api/$1"
     },
     {
       "src": "/(.*)",
