@@ -16,16 +16,23 @@ const allowedOrigins = [
   "https://email-automation-app-rho.vercel.app", // production frontend
   "https://email-automation-app-t8ar.onrender.com", // Render deployment
   "https://email-automation-app.vercel.app", // Additional Vercel deployment
-  "https://email-automation-app.onrender.com" // Add this for Render frontend
+  "https://email-automation-app.onrender.com" // Render frontend (alt)
 ];
 
 const app = express();
 const server = http.createServer(app);
 
-// Socket.IO with CORS
+// Socket.IO with shared CORS logic
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true); // allow Postman, curl
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`Origin ${origin} not allowed by Socket.IO CORS`));
+      }
+    },
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -34,33 +41,37 @@ const io = new Server(server, {
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error(`Origin ${origin} not allowed by CORS`));
-    }
-  },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: [
-    "Content-Type",
-    "Authorization",
-    "Content-Disposition",
-    "Accept",
-    "Origin",
-    "X-Requested-With"
-  ],
-  exposedHeaders: ["Content-Disposition"],
-  credentials: true,
-  optionsSuccessStatus: 200 // For legacy browser support
-}));
 
-// Handle OPTIONS requests for CORS preflight
-app.options("*", cors());
+// CORS for REST API
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true); // allow curl, Postman, etc.
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`Origin ${origin} not allowed by CORS`));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "Content-Disposition",
+      "Accept",
+      "Origin",
+      "X-Requested-With"
+    ],
+    exposedHeaders: ["Content-Disposition"],
+    credentials: true,
+    optionsSuccessStatus: 200
+  })
+);
+
+// Explicitly handle preflight requests
+app.options("*", (req, res) => {
+  res.sendStatus(200);
+});
 
 // Routes
 app.use("/api/auth", authRoutes);
@@ -85,7 +96,7 @@ io.on("connection", (socket) => {
   });
 });
 
-// Root route to avoid Render fallback CSP errors
+// Root route
 app.get("/", (req, res) => {
   res.send("Backend is running 🚀");
 });
