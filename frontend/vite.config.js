@@ -8,7 +8,7 @@ export default defineConfig({
     tailwindcss(),
   ],
   build: {
-    outDir: 'dist' // Explicitly set output directory
+    outDir: '../dist'  // Output to project root dist directory
   },
   server: {
     port: 5173,
