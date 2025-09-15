@@ -16,7 +16,8 @@ const allowedOrigins = [
   "https://email-automation-app-rho.vercel.app", // production frontend
   "https://email-automation-app-t8ar.onrender.com", // Render deployment
   "https://email-automation-app.vercel.app", // Additional Vercel deployment
-  "https://email-automation-app.onrender.com" // Render frontend (alt)
+  "https://email-automation-app.onrender.com", // Render frontend (alt)
+  "https://email-automation-3uv584nfh-dwayceprdc-7227s-projects.vercel.app" // New Vercel preview
 ];
 
 const app = express();
