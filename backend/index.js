@@ -104,16 +104,17 @@ app.get("/", (req, res) => {
 
 // Run migrations in production and start server
 (async () => {
-  if (process.env.NODE_ENV === 'production') {
-    try {
-      const knex = require('knex')(require('./knexfile').production);
-      await knex.migrate.latest();
-      console.log('Migrations run successfully in production');
-    } catch (error) {
-      console.error('Failed to run migrations in production:', error);
-      process.exit(1);
-    }
+if (process.env.NODE_ENV === 'production') {
+  try {
+    const knexConfig = require('./knexfile');
+    const knex = require('knex')(knexConfig.production);
+    await knex.migrate.latest();
+    console.log('Migrations run successfully in production');
+  } catch (error) {
+    console.error('Failed to run migrations in production:', error);
+    process.exit(1);
   }
+}
 
   const PORT = process.env.PORT || 5000;
   server.listen(PORT, () => {
