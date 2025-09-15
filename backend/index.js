@@ -17,7 +17,6 @@ const allowedOrigins = [
   "https://email-automation-app-t8ar.onrender.com", // Render deployment
   "https://email-automation-app.vercel.app", // Additional Vercel deployment
   "https://email-automation-app.onrender.com", // Render frontend (alt)
-  "https://email-automation-3uv584nfh-dwayceprdc-7227s-projects.vercel.app" // New Vercel preview
 ];
 
 const app = express();
@@ -79,6 +78,15 @@ app.use("/api/auth", authRoutes);
 app.use("/api/campaigns", campaignRoutes);
 app.use("/api/databases", databaseRoutes);
 app.use("/api/smtp", smtpRoutes);
+
+// Handle unmatched routes
+app.use((req, res) => {
+  console.error(`Route not found: ${req.method} ${req.url}`);
+  res.status(404).json({ 
+    error: 'Route not found',
+    message: 'The requested endpoint does not exist'
+  });
+});
 
 // Store Socket.IO instance in app for route use
 app.set("io", io);
