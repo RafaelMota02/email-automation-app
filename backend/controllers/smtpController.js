@@ -5,6 +5,7 @@ const pool = require('../db/pool');
 // Test SMTP configuration
 exports.testSmtp = async (req, res) => {
   try {
+    console.log(`Received testSmtp request: ${req.method} ${req.originalUrl}`);
     let { host, port, username, password, encryption, fromEmail, testEmail } = req.body;
 
     // Trim whitespace from all fields
@@ -55,6 +56,7 @@ exports.testSmtp = async (req, res) => {
     });
     
     console.log("Test email sent successfully!", info);
+    console.log(`SMTP test completed successfully for ${testEmail}`);
 
     res.json({ 
       success: true,
