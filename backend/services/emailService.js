@@ -1,6 +1,9 @@
-const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 const pool = require('../db/pool');
 const logger = require('../utils/logger');
+
+// Set SendGrid API key
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 // Get SMTP configuration from database
 const getSmtpConfig = async (userId) => {
@@ -24,30 +27,7 @@ const getSmtpConfig = async (userId) => {
   }
 };
 
-// Create transporter using SendGrid SMTP
-const createTransporter = async () => {
-  logger.info(`[EmailService] Creating SendGrid transporter`);
 
-  const transporter = nodemailer.createTransport({
-    host: 'smtp.sendgrid.net',
-    port: 587,
-    secure: false,
-    auth: {
-      user: 'apikey',
-      pass: process.env.SENDGRID_API_KEY
-    },
-    tls: {
-      rejectUnauthorized: false
-    },
-    connectionTimeout: 30000, // 30 seconds
-    socketTimeout: 30000 // 30 seconds
-  });
-
-  // Note: Skipping verification as it can fail in hosted environments
-  // The transporter will be tested when actually sending emails
-  logger.info(`[EmailService] SendGrid transporter created (verification skipped)`);
-  return transporter;
-};
 
 // Replace placeholders in email content with recipient data
 const replacePlaceholders = (template, recipient) => {
@@ -89,7 +69,6 @@ const sendCampaignEmail = async (userId, recipient, subject, template) => {
   logger.info(`[EmailService] Sending email to ${recipient.email} for user: ${userId}`);
 
   try {
-    const transporter = await createTransporter();
     const config = await getSmtpConfig(userId);
 
     // Replace placeholders in email content
@@ -105,38 +84,28 @@ const sendCampaignEmail = async (userId, recipient, subject, template) => {
     console.log(`[DEBUG] Email subject: ${subject}`);
     console.log(`[DEBUG] Email content: ${htmlContent.substring(0, 200)}...`);
 
-    const info = await transporter.sendMail({
-      from: `"Email Automation" <no-reply.eaafp@outlook.com>`,
+    const msg = {
+      to: recipient.email,
+      from: {
+        email: 'no-reply.eaafp@outlook.com',
+        name: 'Email Automation'
+      },
       replyTo: config.from_email,
-      to: recipient.email, // Use the actual email address
       subject: subject,
-      html: htmlContent
-    });
+      html: htmlContent,
+    };
 
-    logger.info(`[EmailService] Email sent to ${recipient.email}: Message ID ${info.messageId}`);
+    const result = await sgMail.send(msg);
+
+    logger.info(`[EmailService] Email sent to ${recipient.email}: Message ID ${result[0]?.headers?.['x-message-id'] || 'unknown'}`);
     return { success: true };
   } catch (error) {
     logger.error(`[EmailService] Failed to send email to ${recipient.email}:`, error);
 
     // Extract meaningful error message
     let errorMessage = 'Unknown error occurred';
-    if (error.code) {
-      switch (error.code) {
-        case 'EAUTH':
-          errorMessage = 'Authentication failed - check SendGrid credentials';
-          break;
-        case 'ECONNREFUSED':
-          errorMessage = 'Connection refused - check SendGrid SMTP';
-          break;
-        case 'ETIMEDOUT':
-          errorMessage = 'Connection timed out - check network connectivity';
-          break;
-        case 'EENVELOPE':
-          errorMessage = 'Invalid email address format';
-          break;
-        default:
-          errorMessage = `SMTP error (${error.code}): ${error.message}`;
-      }
+    if (error.response) {
+      errorMessage = `SendGrid error: ${error.response.body?.errors?.[0]?.message || error.message}`;
     } else if (error.message) {
       errorMessage = error.message;
     }
