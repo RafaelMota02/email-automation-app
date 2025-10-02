@@ -25,7 +25,7 @@ exports.testSmtp = async (req, res) => {
     const transporter = nodemailer.createTransport({
       host,
       port: parseInt(port),
-      secure: encryption === 'ssl' || encryption === 'tls',
+      secure: encryption === 'ssl',
       auth: {
         user: username,
         pass: password
@@ -41,7 +41,7 @@ exports.testSmtp = async (req, res) => {
     console.log("SMTP Configuration:", {
       host,
       port: parseInt(port),
-      secure: encryption === 'ssl' || encryption === 'tls',
+      secure: encryption === 'ssl',
       auth: {
         user: username,
         pass: password ? '***' : 'undefined'
@@ -119,7 +119,7 @@ exports.saveSmtp = async (req, res) => {
 
     // Validate SMTP configuration before saving
     try {
-      const testTransporter = nodemailer.createTransporter({
+      const testTransporter = nodemailer.createTransport({
         host,
         port: parseInt(port),
         secure: encryption === 'ssl',
