@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useToast } from '../context/ToastContext.jsx';
+import { API_BASE_URL } from '../config';
 
 export default function Settings() {
   const { addToast } = useToast();
@@ -43,7 +44,7 @@ export default function Settings() {
       const token = localStorage.getItem('token');
       const trimmedConfig = trimConfig(smtpConfig);
       
-      const response = await fetch('/api/smtp/test', {
+      const response = await fetch(`${API_BASE_URL}/smtp/test`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -76,7 +77,7 @@ export default function Settings() {
       const token = localStorage.getItem('token');
       const trimmedConfig = trimConfig(smtpConfig);
       
-      const response = await fetch('/api/smtp/', {
+      const response = await fetch(`${API_BASE_URL}/smtp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
