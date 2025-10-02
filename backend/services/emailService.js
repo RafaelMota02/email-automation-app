@@ -28,7 +28,7 @@ const getSmtpConfig = async (userId) => {
 const createTransporter = async (userId) => {
   logger.info(`[EmailService] Creating transporter for user: ${userId}`);
   const config = await getSmtpConfig(userId);
-  
+
   const transporter = nodemailer.createTransport({
     host: config.host,
     port: config.port,
@@ -39,9 +39,11 @@ const createTransporter = async (userId) => {
     },
     tls: {
       rejectUnauthorized: false
-    }
+    },
+    connectionTimeout: 10000, // 10 seconds
+    socketTimeout: 10000 // 10 seconds
   });
-  
+
   // Verify transporter configuration
   try {
     await transporter.verify();

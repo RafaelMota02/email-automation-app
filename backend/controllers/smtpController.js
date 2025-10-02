@@ -33,7 +33,9 @@ exports.testSmtp = async (req, res) => {
       tls: {
         // Do not fail on invalid certs
         rejectUnauthorized: false
-      }
+      },
+      connectionTimeout: 10000, // 10 seconds
+      socketTimeout: 10000 // 10 seconds
     });
 
     console.log("SMTP Configuration:", {
