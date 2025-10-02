@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import useAuth from '../context/useAuth';
 
 export default function Navbar() {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
@@ -23,30 +23,55 @@ export default function Navbar() {
           
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
-            <Link 
-              to="/dashboard" 
-              className="px-3 py-2 text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200"
-            >
-              Dashboard
-            </Link>
-            <Link 
-              to="/databases" 
-              className="px-3 py-2 text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200"
-            >
-              Databases
-            </Link>
-            <Link 
-              to="/settings" 
-              className="px-3 py-2 text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200"
-            >
-              Settings
-            </Link>
-            <button 
-              onClick={logout}
-              className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-md text-sm sm:text-base"
-            >
-              Logout
-            </button>
+            {user ? (
+              <>
+                <Link
+                  to="/dashboard"
+                  className="px-3 py-2 text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200"
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  to="/databases"
+                  className="px-3 py-2 text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200"
+                >
+                  Databases
+                </Link>
+                <Link
+                  to="/settings"
+                  className="px-3 py-2 text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200"
+                >
+                  Settings
+                </Link>
+                <button
+                  onClick={logout}
+                  className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-md text-sm sm:text-base"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/"
+                  className="px-3 py-2 text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200"
+                >
+                  Home
+                </Link>
+                <Link
+                  to="/login"
+                  className="px-3 py-2 text-gray-700 hover:text-indigo-600 font-medium transition-colors duration-200"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/signup"
+                  className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-md text-sm sm:text-base"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
           
           {/* Mobile menu button */}
@@ -72,36 +97,64 @@ export default function Navbar() {
         {/* Mobile menu */}
         {isMenuOpen && (
           <div className="md:hidden mt-2 pb-3">
-            <Link 
-              to="/dashboard" 
-              className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-              onClick={closeMenu}
-            >
-              Dashboard
-            </Link>
-            <Link 
-              to="/databases" 
-              className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-              onClick={closeMenu}
-            >
-              Databases
-            </Link>
-            <Link 
-              to="/settings" 
-              className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
-              onClick={closeMenu}
-            >
-              Settings
-            </Link>
-            <button 
-              onClick={() => {
-                closeMenu();
-                logout();
-              }}
-              className="w-full text-left px-3 py-2 mt-2 text-gray-700 hover:bg-gray-100 rounded-md"
-            >
-              Logout
-            </button>
+            {user ? (
+              <>
+                <Link
+                  to="/dashboard"
+                  className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                  onClick={closeMenu}
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  to="/databases"
+                  className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                  onClick={closeMenu}
+                >
+                  Databases
+                </Link>
+                <Link
+                  to="/settings"
+                  className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                  onClick={closeMenu}
+                >
+                  Settings
+                </Link>
+                <button
+                  onClick={() => {
+                    closeMenu();
+                    logout();
+                  }}
+                  className="w-full text-left px-3 py-2 mt-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/"
+                  className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                  onClick={closeMenu}
+                >
+                  Home
+                </Link>
+                <Link
+                  to="/login"
+                  className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                  onClick={closeMenu}
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/signup"
+                  className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                  onClick={closeMenu}
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
         )}
       </div>
