@@ -2,7 +2,7 @@
 
 ## 🚀 Live Demo
 
-- **Frontend**: [View on Vercel](https://email-automation-app-rho.vercel.app/))
+- **Frontend**: [View on Vercel](https://email-automation-app-rho.vercel.app/)
 - **Backend API**: [View on Render](https://email-automation-app-t8ar.onrender.com)
 
 ## Project Highlights
