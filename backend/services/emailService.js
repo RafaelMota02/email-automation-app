@@ -24,18 +24,17 @@ const getSmtpConfig = async (userId) => {
   }
 };
 
-// Create transporter using SMTP configuration
-const createTransporter = async (userId) => {
-  logger.info(`[EmailService] Creating transporter for user: ${userId}`);
-  const config = await getSmtpConfig(userId);
+// Create transporter using SendGrid SMTP
+const createTransporter = async () => {
+  logger.info(`[EmailService] Creating SendGrid transporter`);
 
   const transporter = nodemailer.createTransport({
-    host: config.host,
-    port: config.port,
-    secure: config.encryption === 'ssl',
+    host: 'smtp.sendgrid.net',
+    port: 587,
+    secure: false,
     auth: {
-      user: config.username,
-      pass: config.password
+      user: 'apikey',
+      pass: process.env.SENDGRID_API_KEY
     },
     tls: {
       rejectUnauthorized: false
@@ -47,11 +46,11 @@ const createTransporter = async (userId) => {
   // Verify transporter configuration
   try {
     await transporter.verify();
-    logger.info(`[EmailService] Transporter verified for user: ${userId}`);
+    logger.info(`[EmailService] SendGrid transporter verified`);
     return transporter;
   } catch (error) {
-    logger.error(`[EmailService] Transporter verification failed for user ${userId}:`, error);
-    throw new Error('SMTP configuration is invalid');
+    logger.error(`[EmailService] SendGrid transporter verification failed:`, error);
+    throw new Error('SendGrid configuration is invalid');
   }
 };
 
@@ -95,7 +94,7 @@ const sendCampaignEmail = async (userId, recipient, subject, template) => {
   logger.info(`[EmailService] Sending email to ${recipient.email} for user: ${userId}`);
 
   try {
-    const transporter = await createTransporter(userId);
+    const transporter = await createTransporter();
     const config = await getSmtpConfig(userId);
 
     // Replace placeholders in email content
@@ -112,7 +111,8 @@ const sendCampaignEmail = async (userId, recipient, subject, template) => {
     console.log(`[DEBUG] Email content: ${htmlContent.substring(0, 200)}...`);
 
     const info = await transporter.sendMail({
-      from: `"Email Automation" <${config.from_email}>`,
+      from: `"Email Automation" <no-reply.eaafp@outlook.com>`,
+      replyTo: config.from_email,
       to: recipient.email, // Use the actual email address
       subject: subject,
       html: htmlContent
@@ -128,10 +128,10 @@ const sendCampaignEmail = async (userId, recipient, subject, template) => {
     if (error.code) {
       switch (error.code) {
         case 'EAUTH':
-          errorMessage = 'Authentication failed - check SMTP credentials';
+          errorMessage = 'Authentication failed - check SendGrid credentials';
           break;
         case 'ECONNREFUSED':
-          errorMessage = 'Connection refused - check SMTP host and port';
+          errorMessage = 'Connection refused - check SendGrid SMTP';
           break;
         case 'ETIMEDOUT':
           errorMessage = 'Connection timed out - check network connectivity';
