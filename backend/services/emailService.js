@@ -39,8 +39,8 @@ const createTransporter = async () => {
     tls: {
       rejectUnauthorized: false
     },
-    connectionTimeout: 10000, // 10 seconds
-    socketTimeout: 10000 // 10 seconds
+    connectionTimeout: 30000, // 30 seconds
+    socketTimeout: 30000 // 30 seconds
   });
 
   // Note: Skipping verification as it can fail in hosted environments
