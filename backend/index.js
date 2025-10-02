@@ -79,6 +79,11 @@ app.use("/api/campaigns", campaignRoutes);
 app.use("/api/databases", databaseRoutes);
 app.use("/api/smtp", smtpRoutes);
 
+// Root route
+app.get("/", (req, res) => {
+  res.send("Backend is running 🚀");
+});
+
 // Handle unmatched routes
 app.use((req, res) => {
   console.error(`Route not found: ${req.method} ${req.url}`);
@@ -103,11 +108,6 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log(`User disconnected: ${socket.id}`);
   });
-});
-
-// Root route
-app.get("/", (req, res) => {
-  res.send("Backend is running 🚀");
 });
 
 // Run migrations in production and start server
