@@ -43,15 +43,10 @@ const createTransporter = async () => {
     socketTimeout: 10000 // 10 seconds
   });
 
-  // Verify transporter configuration
-  try {
-    await transporter.verify();
-    logger.info(`[EmailService] SendGrid transporter verified`);
-    return transporter;
-  } catch (error) {
-    logger.error(`[EmailService] SendGrid transporter verification failed:`, error);
-    throw new Error('SendGrid configuration is invalid');
-  }
+  // Note: Skipping verification as it can fail in hosted environments
+  // The transporter will be tested when actually sending emails
+  logger.info(`[EmailService] SendGrid transporter created (verification skipped)`);
+  return transporter;
 };
 
 // Replace placeholders in email content with recipient data
