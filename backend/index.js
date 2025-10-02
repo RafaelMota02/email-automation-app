@@ -120,7 +120,7 @@ if (process.env.NODE_ENV === 'production') {
     console.log('Migrations run successfully in production');
   } catch (error) {
     console.error('Failed to run migrations in production:', error);
-    process.exit(1);
+    // Continue starting the server even if migrations fail
   }
 }
 
