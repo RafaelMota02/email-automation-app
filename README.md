@@ -1,5 +1,10 @@
 # Email Automation App - Portfolio Project
 
+## 🚀 Live Demo
+
+- **Frontend**: [View on Vercel](https://email-automation-app-rho.vercel.app/))
+- **Backend API**: [View on Render](https://email-automation-app-t8ar.onrender.com)
+
 ## Project Highlights
 **Full-stack email campaign solution** featuring:
 - Email campaign creation and sending
