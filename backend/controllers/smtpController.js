@@ -112,34 +112,89 @@ exports.saveSmtp = async (req, res) => {
     fromEmail = fromEmail.trim();
     if (typeof encryption === 'string') encryption = encryption.trim();
     port = typeof port === 'string' ? port.trim() : port;
-    
+
     if (!host || !port || !username || !password || !fromEmail) {
       return res.status(400).json({ error: 'All fields are required' });
+    }
+
+    // Validate SMTP configuration before saving
+    try {
+      const testTransporter = nodemailer.createTransporter({
+        host,
+        port: parseInt(port),
+        secure: encryption === 'ssl',
+        auth: {
+          user: username,
+          pass: password
+        },
+        tls: {
+          rejectUnauthorized: false
+        },
+        connectionTimeout: 10000,
+        socketTimeout: 10000
+      });
+
+      // Verify the SMTP configuration
+      await testTransporter.verify();
+      console.log('SMTP configuration validated successfully');
+    } catch (validationError) {
+      console.error('SMTP configuration validation failed:', validationError);
+
+      let errorCode = 'SMTP_GENERIC_ERROR';
+      let userMessage = 'SMTP configuration is invalid';
+      let remediation = 'Check your SMTP settings and try again';
+
+      // Handle specific error types
+      if (validationError.code === 'ECONNREFUSED') {
+        errorCode = 'SMTP_CONNECTION_REFUSED';
+        userMessage = 'Connection to SMTP server refused';
+        remediation = 'Verify host and port, check firewall settings';
+      } else if (validationError.code === 'EAUTH') {
+        errorCode = 'SMTP_AUTH_FAILED';
+        userMessage = 'Authentication failed';
+        remediation = 'Verify username and password, check app passwords for Gmail';
+      } else if (validationError.code === 'ETIMEDOUT') {
+        errorCode = 'SMTP_CONNECTION_TIMEOUT';
+        userMessage = 'Connection to SMTP server timed out';
+        remediation = 'Check network connection and server availability';
+      } else if (validationError.message.includes('WRONG_VERSION_NUMBER') ||
+                 validationError.message.includes('tls_validate_record_header')) {
+        errorCode = 'SMTP_TLS_VERSION_MISMATCH';
+        userMessage = 'TLS/SSL version mismatch';
+        remediation = 'Try different encryption/port combination (e.g., SSL on port 465 or TLS on port 587)';
+      }
+
+      return res.status(400).json({
+        success: false,
+        errorCode,
+        message: userMessage,
+        remediation
+      });
     }
 
     // Save the configuration to the database
     const result = await pool.query(`
       INSERT INTO smtp_configurations (user_id, host, port, username, password, encryption, from_email)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
-      ON CONFLICT (user_id) 
-      DO UPDATE SET 
-        host = EXCLUDED.host, 
-        port = EXCLUDED.port, 
-        username = EXCLUDED.username, 
-        password = EXCLUDED.password, 
-        encryption = EXCLUDED.encryption, 
+      ON CONFLICT (user_id)
+      DO UPDATE SET
+        host = EXCLUDED.host,
+        port = EXCLUDED.port,
+        username = EXCLUDED.username,
+        password = EXCLUDED.password,
+        encryption = EXCLUDED.encryption,
         from_email = EXCLUDED.from_email
       RETURNING id
     `, [req.userId, host, parseInt(port), username, password, encryption, fromEmail]);
 
-    res.json({ 
+    res.json({
       success: true,
       message: 'SMTP configuration saved successfully!',
       id: result.rows[0].id
     });
   } catch (error) {
     console.error('Failed to save SMTP config:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       message: error.message || 'Failed to save SMTP configuration'
     });
