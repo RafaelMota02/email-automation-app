@@ -151,9 +151,16 @@ export default function CampaignDetails() {
                               Sent
                             </span>
                           ) : (
-                            <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">
-                              Failed
-                            </span>
+                            <div className="flex flex-col items-end">
+                              <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full mb-1">
+                                Failed
+                              </span>
+                              {sendResult.error && (
+                                <span className="text-xs text-red-600 max-w-48 text-right leading-tight">
+                                  {sendResult.error}
+                                </span>
+                              )}
+                            </div>
                           )
                         ) : (
                           <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">

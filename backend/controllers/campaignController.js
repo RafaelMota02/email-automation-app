@@ -206,14 +206,15 @@ const exportCampaignResults = async (req, res) => {
     const sendResults = campaign.send_results || [];
 
     // Create a CSV string
-    let csvContent = 'Email,Status,Timestamp\n';
+    let csvContent = 'Email,Status,Timestamp,Error\n';
 
     recipients.forEach((recipient, index) => {
-      const result = sendResults[index] || { success: false, timestamp: null };
+      const result = sendResults[index] || { success: false, timestamp: null, error: null };
       const email = recipient.email || '';
       const status = result.success ? 'Sent' : 'Failed';
       const timestamp = result.timestamp ? new Date(result.timestamp).toISOString() : '';
-      csvContent += `"${email}","${status}","${timestamp}"\n`;
+      const error = result.error ? result.error.replace(/"/g, '""') : ''; // Escape quotes for CSV
+      csvContent += `"${email}","${status}","${timestamp}","${error}"\n`;
     });
 
     // Set headers for file download

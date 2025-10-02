@@ -93,18 +93,18 @@ const replacePlaceholders = (template, recipient) => {
 // Send campaign email
 const sendCampaignEmail = async (userId, recipient, subject, template) => {
   logger.info(`[EmailService] Sending email to ${recipient.email} for user: ${userId}`);
-  
+
   try {
     const transporter = await createTransporter(userId);
     const config = await getSmtpConfig(userId);
-    
+
     // Replace placeholders in email content
     const htmlContent = replacePlaceholders(template, recipient);
-    
+
     // Ensure we have a valid email address
     if (!recipient.email) {
       logger.warn(`[EmailService] Skipping recipient with no email address: ${JSON.stringify(recipient)}`);
-      return false;
+      return { success: false, error: 'No email address provided' };
     }
 
     console.log(`[DEBUG] Sending email to: ${recipient.email}`);
@@ -117,12 +117,36 @@ const sendCampaignEmail = async (userId, recipient, subject, template) => {
       subject: subject,
       html: htmlContent
     });
-    
+
     logger.info(`[EmailService] Email sent to ${recipient.email}: Message ID ${info.messageId}`);
-    return true;
+    return { success: true };
   } catch (error) {
     logger.error(`[EmailService] Failed to send email to ${recipient.email}:`, error);
-    return false;
+
+    // Extract meaningful error message
+    let errorMessage = 'Unknown error occurred';
+    if (error.code) {
+      switch (error.code) {
+        case 'EAUTH':
+          errorMessage = 'Authentication failed - check SMTP credentials';
+          break;
+        case 'ECONNREFUSED':
+          errorMessage = 'Connection refused - check SMTP host and port';
+          break;
+        case 'ETIMEDOUT':
+          errorMessage = 'Connection timed out - check network connectivity';
+          break;
+        case 'EENVELOPE':
+          errorMessage = 'Invalid email address format';
+          break;
+        default:
+          errorMessage = `SMTP error (${error.code}): ${error.message}`;
+      }
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
+    return { success: false, error: errorMessage };
   }
 };
 
@@ -137,17 +161,18 @@ const sendCampaignWithData = async (userId, campaignId, subject, message, recipi
     
     // Send to each recipient
     for (const recipient of recipients) {
-      const success = await sendCampaignEmail(userId, recipient, subject, message);
+      const result = await sendCampaignEmail(userId, recipient, subject, message);
       sentResults.push({
         email: recipient.email,
-        success,
+        success: result.success,
+        error: result.error || null,
         timestamp: new Date().toISOString()
       });
-      
-      if (success) {
+
+      if (result.success) {
         logger.info(`[EmailService] ✅ Sent to ${recipient.email}`);
       } else {
-        logger.warn(`[EmailService] ❌ Failed to send to ${recipient.email}`);
+        logger.warn(`[EmailService] ❌ Failed to send to ${recipient.email}: ${result.error}`);
       }
     }
     
