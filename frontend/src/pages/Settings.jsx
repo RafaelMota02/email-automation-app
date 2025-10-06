@@ -114,7 +114,7 @@ export default function Settings() {
         <div className="flex">
           <div className="ml-3">
             <p className="text-sm text-blue-700">
-              <strong>About Email Sending:</strong> SMTP configurations are primarily for testing and validation purposes only.
+              <strong>About Email Sending:</strong> SMTP configurations are primarily for reality-simulation purposes only.
               Actual campaign emails are sent through SendGrid for reliable delivery and to avoid Google's security restrictions on direct SMTP access.
             </p>
           </div>
