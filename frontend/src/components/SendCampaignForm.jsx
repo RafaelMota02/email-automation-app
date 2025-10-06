@@ -126,6 +126,14 @@ export default function SendCampaignForm({ onCampaignSent }) {
     <form onSubmit={handleSubmit} className="space-y-6" noValidate>
       {error && <div className="p-3 text-red-700 bg-red-100 rounded">{error}</div>}
 
+      {isSending && (
+        <div className="p-3 bg-indigo-50 text-indigo-800 rounded-md">
+          <p className="text-sm">
+            <strong>Sending via SendGrid:</strong> Your campaign is being sent through our reliable SendGrid service for optimal deliverability and to avoid Google's SMTP restrictions.
+          </p>
+        </div>
+      )}
+
       <div>
         <label className="block mb-2 font-medium">Campaign Subject</label>
         <input

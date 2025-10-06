@@ -109,7 +109,18 @@ export default function Settings() {
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6">
       <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 sm:mb-8">Email Settings</h1>
-      
+
+      <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+        <div className="flex">
+          <div className="ml-3">
+            <p className="text-sm text-blue-700">
+              <strong>About Email Sending:</strong> SMTP configurations are primarily for testing and validation purposes only.
+              Actual campaign emails are sent through SendGrid for reliable delivery and to avoid Google's security restrictions on direct SMTP access.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div className="bg-white rounded-xl shadow-lg overflow-hidden">
         <form onSubmit={handleSave}>
           <div className="p-4 sm:p-6 border-b border-gray-100">
