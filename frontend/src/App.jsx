@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { io } from 'socket.io-client';
 import AuthProvider from './context/AuthProvider';
 import SocketContext from './context/SocketContext';
@@ -23,6 +24,20 @@ const socket = io(WS_BASE_URL, {
 });
 
 export default function App() {
+  // Keep-alive ping for Render backend in production
+  useEffect(() => {
+    if (import.meta.env.PROD) {
+      const interval = setInterval(async () => {
+        try {
+          await fetch('https://email-automation-app-t8ar.onrender.com/');
+        } catch (error) {
+          console.warn('Keep-alive ping failed:', error);
+        }
+      }, 5 * 60 * 1000); // 5 minutes
+      return () => clearInterval(interval);
+    }
+  }, []);
+
   return (
     <Router>
       <SocketContext.Provider value={socket}>
