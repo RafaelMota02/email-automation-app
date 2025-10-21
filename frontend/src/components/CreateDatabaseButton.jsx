@@ -5,7 +5,7 @@ import axios from 'axios';
 import Papa from 'papaparse';
 import useAuth from '../context/useAuth';
 
-export default function CreateDatabaseButton({ onDatabaseCreated }) {
+export default function CreateDatabaseButton({ onDatabaseCreated, className }) {
   const { user } = useAuth();
   const [showModal, setShowModal] = useState(false);
   const [name, setName] = useState('');
@@ -94,7 +94,12 @@ export default function CreateDatabaseButton({ onDatabaseCreated }) {
         onDatabaseCreated(response.data);
       }
       setShowModal(false);
-      window.location.reload();
+      // Reset form state for next use
+      setName('');
+      setCsvData('');
+      setEmailColumn('');
+      setHeaders([]);
+      setError('');
     } catch (err) {
       setError(err.message || 'Failed to create database');
     } finally {
@@ -106,7 +111,7 @@ export default function CreateDatabaseButton({ onDatabaseCreated }) {
     <div className="relative flex gap-4">
       <button
         onClick={() => setShowModal(true)}
-        className="bg-indigo-600 text-white px-4 py-3 rounded-md font-semibold hover:bg-indigo-700 transition"
+        className={className || "px-4 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition"}
       >
         Create Database
       </button>

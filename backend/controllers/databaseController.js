@@ -3,59 +3,80 @@ const pool = require('../db/pool');
 const createDatabase = async (req, res) => {
   try {
     const { name, columns, csvData, emailColumn } = req.body;
-    
+
+    console.log('Creating database:', { name, emailColumn });
+    console.log('CSV Data length:', csvData?.length);
+
     if (!emailColumn) {
       throw new Error('Email column must be specified');
     }
-    
+
     // Parse CSV data to JSON
     const parsedData = parseCSV(csvData);
-    
+    console.log('Parsed headers:', parsedData.headers);
+    console.log('Parsed data rows:', parsedData.data.length);
+
     // Validate that the email column exists
     if (!parsedData.headers.includes(emailColumn)) {
       throw new Error('Specified email column does not exist in CSV data');
     }
-    
+
     // Validate and transform email column
     let hasValidEmail = false;
-    parsedData.data = parsedData.data.map(row => {
+    let validEmailCount = 0;
+    parsedData.data = parsedData.data.map((row, index) => {
       const email = row[emailColumn];
-      
+      const originalEmail = email;
+
       // If email column contains non-email values, try to find email in other columns
       if (!isValidEmail(email)) {
+        console.log(`Row ${index}: Invalid email "${email}", checking other columns...`);
         for (const key in row) {
-          if (isValidEmail(row[key])) {
+          if (key !== emailColumn && isValidEmail(row[key])) {
+            console.log(`Row ${index}: Found valid email in column ${key}: ${row[key]}`);
             row[emailColumn] = row[key]; // Move valid email to email column
             hasValidEmail = true;
+            validEmailCount++;
             break;
           }
         }
       } else {
+        console.log(`Row ${index}: Valid email found: ${email}`);
         hasValidEmail = true;
+        validEmailCount++;
       }
+
+      if (originalEmail !== row[emailColumn]) {
+        console.log(`Row ${index}: Email moved from "${originalEmail}" to "${row[emailColumn]}"`);
+      }
+
       return row;
     });
-    
+
+    console.log(`Validation complete: ${validEmailCount} valid emails found`);
+
     if (!hasValidEmail) {
       throw new Error('No valid email addresses found in the database');
     }
     
     const result = await pool.query(
-      `INSERT INTO saved_databases 
-       (user_id, name, email_column, data) 
-       VALUES ($1, $2, $3, $4) 
+      `INSERT INTO saved_databases
+       (user_id, name, email_column, data)
+       VALUES ($1, $2, $3, $4)
        RETURNING id, name, created_at`,
       [req.userId, name, emailColumn, JSON.stringify(parsedData.data)]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(400).json({ error: err.message });
   }
 };
 
 // Simple email validation function
 function isValidEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  if (!email || typeof email !== 'string') return false;
+  const trimmedEmail = email.trim().toLowerCase();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail);
 }
 
 // Add CSV parsing function similar to frontend
@@ -97,20 +118,21 @@ const getDatabases = async (req, res) => {
     );
     
     // Add metrics to each database
-    const databasesWithMetrics = result.rows.map(db => {
+    const databasesWithMetrics = await Promise.all(result.rows.map(async (db) => {
       let contactCount = 0;
       let variables = [];
-      
+      let campaignCount = 0;
+
       try {
         if (db.data && Array.isArray(db.data)) {
           // Get all column names (variables) from the first row
           if (db.data.length > 0) {
             variables = Object.keys(db.data[0]);
           }
-          
+
           // Count contacts (non-empty email values)
           if (db.email_column) {
-            contactCount = db.data.filter(row => 
+            contactCount = db.data.filter(row =>
               row[db.email_column] && row[db.email_column].trim() !== ''
             ).length;
           }
@@ -118,13 +140,25 @@ const getDatabases = async (req, res) => {
       } catch (e) {
         console.error('Error processing database metrics:', e);
       }
-      
+
+      // Count campaigns using this database
+      try {
+        const campaignResult = await pool.query(
+          'SELECT COUNT(*) FROM campaigns WHERE database_id = $1 AND user_id = $2',
+          [db.id, req.userId]
+        );
+        campaignCount = parseInt(campaignResult.rows[0].count) || 0;
+      } catch (e) {
+        console.error('Error counting campaigns:', e);
+      }
+
       return {
         ...db,
         contact_count: contactCount,
-        variables: variables
+        variables: variables,
+        campaign_count: campaignCount
       };
-    });
+    }));
     
     res.json(databasesWithMetrics);
   } catch (err) {

@@ -5,7 +5,7 @@ import SocketContext from '../context/SocketContext';
 import useAuth from '../context/useAuth';
 import { replacePlaceholders } from '../utils/replacePlaceholders';
 import { API_BASE_URL } from '../config';
-import { useToast } from '../context/ToastContext.jsx';
+import { useToast } from '../context/ToastContext.js';
 
 export default function CampaignDetails() {
   const { id } = useParams();

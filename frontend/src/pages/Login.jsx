@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import useAuth from '../context/useAuth';
-import { useToast } from '../context/ToastContext.jsx';
+import { useToast } from '../context/ToastContext.js';
 
 export default function Login() {
   const { login } = useAuth();
@@ -23,53 +23,80 @@ export default function Login() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
-      <div className="bg-white p-6 sm:p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-2xl sm:text-3xl font-bold text-center mb-4 sm:mb-6">Welcome Back 👋</h2>
-        <p className="text-center text-gray-600 mb-6 sm:mb-8">Log in to manage your campaigns</p>
-          <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                className="mt-1 w-full px-3 py-2 sm:px-4 sm:py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm sm:text-base"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+    <div className="min-h-screen bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-800 flex items-center justify-center p-4">
+      <div className="bg-white p-8 sm:p-10 rounded-3xl shadow-2xl w-full max-w-md relative overflow-hidden">
+        {/* Decorative Background */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-indigo-100 to-transparent rounded-full -translate-y-8 translate-x-8"></div>
+
+        <div className="relative">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-2">Welcome Back</h2>
+            <p className="text-gray-600">Log in to manage your email campaigns</p>
           </div>
-          <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="relative">
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+                Email Address
+              </label>
+              <div className="relative">
+                <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                </svg>
+                <input
+                  type="email"
+                  id="email"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none transition-colors text-sm sm:text-base"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="relative">
+              <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
                 Password
               </label>
-              <input
-                type="password"
-                id="password"
-                className="mt-1 w-full px-3 py-2 sm:px-4 sm:py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm sm:text-base"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+              <div className="relative">
+                <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <input
+                  type="password"
+                  id="password"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none transition-colors text-sm sm:text-base"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className={`w-full py-3 px-6 font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl text-sm sm:text-base ${
+                isLoading
+                  ? 'bg-indigo-400 text-white cursor-not-allowed'
+                  : 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 hover:-translate-y-0.5'
+              }`}
+            >
+              {isLoading ? 'Logging in...' : 'Sign In'}
+            </button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-500">
+              Don’t have an account?{" "}
+              <Link to="/signup" className="text-indigo-600 font-semibold hover:text-indigo-800 hover:underline transition-colors">
+                Create one here
+              </Link>
+            </p>
           </div>
-          <button
-            type="submit"
-            disabled={isLoading}
-            className={`w-full py-2 sm:py-3 px-4 text-white font-semibold rounded-md transition text-sm sm:text-base ${
-              isLoading ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700'
-            }`}
-          >
-            {isLoading ? 'Logging in...' : 'Login'}
-          </button>
-        </form>
-        <p className="mt-4 text-center text-xs sm:text-sm text-gray-500">
-          Don’t have an account?{" "}
-          <Link to="/signup" className="text-indigo-600 hover:underline">
-            Sign up
-          </Link>
-        </p>
+        </div>
       </div>
     </div>
   );

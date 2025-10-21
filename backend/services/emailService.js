@@ -1,4 +1,5 @@
 const sgMail = require('@sendgrid/mail');
+const nodemailer = require('nodemailer');
 const pool = require('../db/pool');
 const logger = require('../utils/logger');
 
@@ -69,7 +70,14 @@ const sendCampaignEmail = async (userId, recipient, subject, template) => {
   logger.info(`[EmailService] Sending email to ${recipient.email} for user: ${userId}`);
 
   try {
-    const config = await getSmtpConfig(userId);
+    // Get user's email provider preference
+    const userResult = await pool.query(
+      'SELECT email_provider FROM users WHERE id = $1',
+      [userId]
+    );
+
+    const emailProvider = userResult.rows[0]?.email_provider || 'sendgrid';
+    logger.info(`[EmailService] Using email provider: ${emailProvider} for user: ${userId}`);
 
     // Replace placeholders in email content
     const htmlContent = replacePlaceholders(template, recipient);
@@ -84,27 +92,72 @@ const sendCampaignEmail = async (userId, recipient, subject, template) => {
     console.log(`[DEBUG] Email subject: ${subject}`);
     console.log(`[DEBUG] Email content: ${htmlContent.substring(0, 200)}...`);
 
-    const msg = {
-      to: recipient.email,
-      from: {
-        email: 'no-reply.eaafp@outlook.com',
-        name: 'Email Automation'
-      },
-      replyTo: config.from_email,
-      subject: subject,
-      html: htmlContent,
-    };
+    let result;
 
-    const result = await sgMail.send(msg);
+    if (emailProvider === 'smtp') {
+      // Use SMTP configuration
+      const config = await getSmtpConfig(userId);
 
-    logger.info(`[EmailService] Email sent to ${recipient.email}: Message ID ${result[0]?.headers?.['x-message-id'] || 'unknown'}`);
+      // Create Nodemailer transporter
+      const transporter = nodemailer.createTransporter({
+        host: config.host,
+        port: parseInt(config.port),
+        secure: config.encryption === 'ssl',
+        auth: {
+          user: config.username,
+          pass: config.password
+        },
+        tls: {
+          // Do not fail on invalid certs
+          rejectUnauthorized: false
+        },
+        connectionTimeout: 10000,
+        socketTimeout: 10000
+      });
+
+      result = await transporter.sendMail({
+        from: `"${config.from_email.split('@')[0]}" <${config.from_email}>`,
+        to: recipient.email,
+        subject: subject,
+        html: htmlContent,
+      });
+
+      logger.info(`[EmailService] SMTP: Email sent to ${recipient.email}: Message ID ${result.messageId}`);
+      await transporter.close();
+
+    } else {
+      // Default to SendGrid
+      const config = await getSmtpConfig(userId);
+
+      const msg = {
+        to: recipient.email,
+        from: {
+          email: 'no-reply.eaafp@outlook.com',
+          name: 'Email Automation'
+        },
+        replyTo: config.from_email,
+        subject: subject,
+        html: htmlContent,
+      };
+
+      result = await sgMail.send(msg);
+      logger.info(`[EmailService] SendGrid: Email sent to ${recipient.email}: Message ID ${result[0]?.headers?.['x-message-id'] || 'unknown'}`);
+    }
+
     return { success: true };
   } catch (error) {
     logger.error(`[EmailService] Failed to send email to ${recipient.email}:`, error);
 
     // Extract meaningful error message
     let errorMessage = 'Unknown error occurred';
-    if (error.response) {
+
+    if (error.code === 'ECONNREFUSED') {
+      errorMessage = 'SMTP connection refused - check host and port';
+    } else if (error.code === 'EAUTH') {
+      errorMessage = 'SMTP authentication failed - check username and password';
+    } else if (error.code === 'ETIMEDOUT') {
+      errorMessage = 'SMTP connection timed out - check network connectivity';
+    } else if (error.response) {
       errorMessage = `SendGrid error: ${error.response.body?.errors?.[0]?.message || error.message}`;
     } else if (error.message) {
       errorMessage = error.message;
@@ -199,8 +252,56 @@ const sendCampaign = async (userId, campaignId) => {
   }
 };
 
+// Get user's email provider preference
+const getEmailProvider = async (userId) => {
+  try {
+    const result = await pool.query(
+      'SELECT email_provider FROM users WHERE id = $1',
+      [userId]
+    );
+    return result.rows[0]?.email_provider || 'sendgrid';
+  } catch (error) {
+    logger.error(`[EmailService] Error getting email provider for user ${userId}:`, error);
+    return 'sendgrid'; // Default to SendGrid on error
+  }
+};
+
+// Set user's email provider preference
+const setEmailProvider = async (userId, provider) => {
+  try {
+    if (!['sendgrid', 'smtp'].includes(provider)) {
+      throw new Error('Invalid email provider. Must be either "sendgrid" or "smtp"');
+    }
+
+    // If choosing SMTP, verify configuration exists
+    if (provider === 'smtp') {
+      const hasSmtpConfig = await pool.query(
+        'SELECT COUNT(*) as count FROM smtp_configurations WHERE user_id = $1',
+        [userId]
+      );
+
+      if (parseInt(hasSmtpConfig.rows[0].count) === 0) {
+        throw new Error('SMTP configuration not found. Please configure your SMTP settings first.');
+      }
+    }
+
+    await pool.query(
+      'UPDATE users SET email_provider = $1 WHERE id = $2',
+      [provider, userId]
+    );
+
+    logger.info(`[EmailService] Set email provider to ${provider} for user ${userId}`);
+    return { success: true, provider };
+  } catch (error) {
+    logger.error(`[EmailService] Error setting email provider for user ${userId}:`, error);
+    throw error;
+  }
+};
+
 module.exports = {
   sendCampaignEmail,
   sendCampaignWithData,
-  sendCampaign
+  sendCampaign,
+  getEmailProvider,
+  setEmailProvider
 };

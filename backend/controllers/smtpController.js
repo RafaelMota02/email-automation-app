@@ -1,6 +1,7 @@
 const nodemailer = require('nodemailer');
 
 const pool = require('../db/pool');
+const { getEmailProvider, setEmailProvider } = require('../services/emailService');
 
 // Test SMTP configuration
 exports.testSmtp = async (req, res) => {
@@ -208,17 +209,59 @@ exports.getSmtp = async (req, res) => {
       'SELECT id, host, port, username, encryption, from_email FROM smtp_configurations WHERE user_id = $1',
       [req.userId]
     );
-    
+
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'SMTP configuration not found for this user' });
     }
-    
+
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Failed to get SMTP config:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       message: error.message || 'Failed to get SMTP configuration'
+    });
+  }
+};
+
+// Get email provider preference
+exports.getEmailProvider = async (req, res) => {
+  try {
+    const provider = await getEmailProvider(req.userId);
+    res.json({ provider });
+  } catch (error) {
+    console.error('Failed to get email provider:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to get email provider preference'
+    });
+  }
+};
+
+// Set email provider preference
+exports.setEmailProvider = async (req, res) => {
+  try {
+    const { provider } = req.body;
+
+    if (!provider) {
+      return res.status(400).json({ error: 'Provider is required' });
+    }
+
+    const result = await setEmailProvider(req.userId, provider);
+    res.json(result);
+  } catch (error) {
+    console.error('Failed to set email provider:', error);
+
+    let statusCode = 500;
+    let message = error.message || 'Failed to set email provider preference';
+
+    if (error.message.includes('SMTP configuration not found')) {
+      statusCode = 400;
+    }
+
+    res.status(statusCode).json({
+      success: false,
+      message
     });
   }
 };
