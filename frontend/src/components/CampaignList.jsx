@@ -68,20 +68,29 @@ export default function CampaignList({ onCreateCampaign }) {
 
   useEffect(() => {
     if (!socket || !user) return;
-    
-    // Connect socket when user is authenticated
-    if (!socket.connected) {
-      socket.connect();
-    }
-    
+
+    const connectSocket = async () => {
+      try {
+        // Connect socket when user is authenticated
+        if (!socket.connected) {
+          await socket.connect();
+        }
+        console.log('Socket connected');
+      } catch (error) {
+        console.error('Socket connection failed:', error);
+      }
+    };
+
+    connectSocket();
+
     const handleCampaignUpdate = (updatedCampaign) => {
       setCampaigns(prevCampaigns => {
         // Check if campaign already exists
         const exists = prevCampaigns.some(c => c.id === updatedCampaign.id);
-        
+
         if (exists) {
           // Update existing campaign
-          return prevCampaigns.map(c => 
+          return prevCampaigns.map(c =>
             c.id === updatedCampaign.id ? updatedCampaign : c
           );
         } else {
@@ -90,9 +99,9 @@ export default function CampaignList({ onCreateCampaign }) {
         }
       });
     };
-    
+
     socket.on('campaign-updated', handleCampaignUpdate);
-    
+
     return () => {
       socket.off('campaign-updated', handleCampaignUpdate);
       // Disconnect socket when component unmounts
